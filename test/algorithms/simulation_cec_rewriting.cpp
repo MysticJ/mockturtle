@@ -14,33 +14,7 @@
 
 using namespace mockturtle;
 
-TEST_CASE( "CEC simple AIG copy", "[cec2]" )
-{
-  aig_network aig1;
-
-  const auto a1 = aig1.create_pi();
-  const auto b1 = aig1.create_pi();
-  const auto c1 = aig1.create_pi();
-  const auto f11 = aig1.create_and( a1, b1 );
-  const auto f21 = aig1.create_and( c1, f11 );
-  aig1.create_po( f21 );
-
-  aig_network aig2;
-
-  const auto a2 = aig2.create_pi();
-  const auto b2 = aig2.create_pi();
-  const auto c2 = aig2.create_pi();
-  const auto f12 = aig2.create_and( b2, c2 );
-  const auto f22 = aig2.create_and( a2, f12 );
-  aig2.create_po( f22 );
-
-  simulation_cec_stats st;
-  CHECK( *simulation_cec( aig1, aig2, &st ) );
-  CHECK( st.split_var == 3 );
-  CHECK( st.rounds == 1 );
-}
-
-TEST_CASE( "CEC simple AIG 2", "[cec2]" )
+TEST_CASE( "CEC simple AIG 2", "[cec]" )
 {
   aig_network aig1;
 
@@ -74,7 +48,7 @@ TEST_CASE( "CEC simple AIG 2", "[cec2]" )
   CHECK( st.rounds == 1 );
 }
 
-TEST_CASE( "CEC simple AIG 3", "[cec2]" )
+TEST_CASE( "CEC simple AIG 3", "[cec]" )
 {
   aig_network aig1;
 
@@ -104,7 +78,7 @@ TEST_CASE( "CEC simple AIG 3", "[cec2]" )
   CHECK( st.rounds == 1 );
 }
 
-TEST_CASE( "CEC simple AIG 4", "[cec2]" )
+TEST_CASE( "CEC simple AIG 4", "[cec]" )
 {
   aig_network aig1;
 
@@ -131,6 +105,33 @@ TEST_CASE( "CEC simple AIG 4", "[cec2]" )
   simulation_cec_stats st;
   CHECK( !*simulation_cec( aig1, aig2, &st ) );
   CHECK( st.split_var == 4 );
+  CHECK( st.rounds == 1 );
+}
+
+/*
+TEST_CASE( "CEC simple AIG copy", "[cec2]" )
+{
+  aig_network aig1;
+
+  const auto a1 = aig1.create_pi();
+  const auto b1 = aig1.create_pi();
+  const auto c1 = aig1.create_pi();
+  const auto f11 = aig1.create_and( a1, b1 );
+  const auto f21 = aig1.create_and( c1, f11 );
+  aig1.create_po( f21 );
+
+  aig_network aig2;
+
+  const auto a2 = aig2.create_pi();
+  const auto b2 = aig2.create_pi();
+  const auto c2 = aig2.create_pi();
+  const auto f12 = aig2.create_and( b2, c2 );
+  const auto f22 = aig2.create_and( a2, f12 );
+  aig2.create_po( f22 );
+
+  simulation_cec_stats st;
+  CHECK( *simulation_cec( aig1, aig2, &st ) );
+  CHECK( st.split_var == 3 );
   CHECK( st.rounds == 1 );
 }
 
@@ -240,3 +241,4 @@ TEST_CASE( "CEC on optimized design 2 copy", "[cec2]" )
   CHECK( st.split_var == 11 );
   CHECK( st.rounds == 1 );
 }
+*/
