@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include <math.h>
+
 #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operations.hpp>
@@ -74,7 +76,114 @@ public:
   bool run()
   {
     /* TODO: write your implementation here */
-    return false;
+
+    // Step 1: update simulation_cec_stats _st :
+    uint32_t num_nodes = _ntk.size();     // V
+    uint32_t num_inputs = _ntk.num_pis(); // n
+
+    std::cout << "\[simulation cec\] start new run ------------------------" << std::endl;
+    std::cout << "\[simulation cec\] num_inputs is " << num_inputs << std::endl;
+
+    assert( num_inputs <= 40u );
+
+    if ( num_inputs <= 6u )
+    {
+      _st.split_var = num_inputs;
+    }
+    else
+    {
+      uint32_t tmp = floor( log2( pow( 2, 29 ) / num_nodes - 32 ) + 3 );
+
+      // std::cout << "\[simulation cec\] tmp is " << tmp << std::endl;
+
+      _st.split_var = ( num_inputs <= tmp ? num_inputs : tmp );
+    }
+    _st.rounds = ( 1u << ( num_inputs - _st.split_var ) );
+
+    // For test only
+    // _st.split_var = 7u;
+    // _st.rounds = ( 1u << ( num_inputs - _st.split_var ) ); 
+
+    std::cout << "\[simulation cec\] split_var is " << _st.split_var << std::endl;
+    std::cout << "\[simulation cec\] rounds is " << _st.rounds << std::endl;
+
+    // Step 2: initialize patters (pattern_t), simulator :
+    pattern_t patterns( _ntk );
+    default_simulator<kitty::dynamic_truth_table> sim( num_inputs );
+    bool result = true;
+
+    // Step 3: iterate
+    if ( _st.rounds == 1u )
+    {
+      patterns.reset();
+      simulate_nodes<kitty::dynamic_truth_table>( _ntk, patterns, sim );
+      _ntk.foreach_po( [&]( signal const& f, uint32_t j )
+                       {
+                         std::vector<uint64_t> tt_bits = ( _ntk.is_complemented( f ) ? ~patterns[f] : patterns[f] )._bits;
+                         // std::cout << "\t\t j = " << j << "; size of tt =  " << tt_bits.size() << std::endl;
+
+                         for ( std::vector<uint64_t>::iterator it = tt_bits.begin(); it != tt_bits.end(); ++it )
+                         {
+                           // std::cout << "\[simulation cec\] result is " << *it << std::endl;
+                           if ( *it != 0x0 )
+                           {
+                             result = result && false;
+                             std::cout << "\[simulation cec\] inconsistency detected." << std::endl;
+                           }
+                         }
+                       } );
+    }
+    else
+    {
+      for ( uint32_t round = 0u; round < _st.rounds; round = round + 1u )
+      {
+        std::cout << "\[simulation cec\] round-1 is " << round << std::endl;
+
+        patterns.reset();
+
+        uint32_t split_var = _st.split_var;
+
+        _ntk.foreach_pi( [&]( node const& n, uint32_t i )
+                         {
+                           if ( i >= split_var )
+                           {
+                             uint32_t index = i - split_var;
+                             // std::cout << "\[simulation cec\] - update_patterns, index is " << index << std::endl;
+
+                             std::cout << "\[simulation cec\] - update_patterns, update to " << (( round >> index ) % 2u) << std::endl;
+                             if ( ( round >> index ) % 2u )
+                             { // if this input should be set as 1:
+                               patterns[n] = ~kitty::dynamic_truth_table( _ntk.num_pis() );
+                             }
+                             else
+                             { // if this input should be set as 0:
+                               patterns[n] = kitty::dynamic_truth_table( _ntk.num_pis() );
+                             }
+                           }
+                         } );
+        std::cout << "\[simulation cec\] end of update_patterns" << std::endl;
+        
+        simulate_nodes<kitty::dynamic_truth_table>( _ntk, patterns, sim );
+
+        _ntk.foreach_po( [&]( signal const& f, uint32_t j )
+                         {
+                           std::vector<uint64_t> tt_bits = ( _ntk.is_complemented( f ) ? ~patterns[f] : patterns[f] )._bits;
+                           for ( std::vector<uint64_t>::iterator it = tt_bits.begin(); it != tt_bits.end(); ++it )
+                           {
+                             if ( *it != 0x0 )
+                             {
+                               result = result && false;
+                               std::cout << "\[simulation cec\] inconsistency detected." << std::endl;
+                             }
+                           }
+                         } );
+        if ( !result )
+        {
+          return result;
+        }
+      }
+    }
+    return result;
   }
 
 private:

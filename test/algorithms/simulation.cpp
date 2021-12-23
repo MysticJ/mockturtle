@@ -76,7 +76,9 @@ TEST_CASE( "Simulate XOR AIG circuit with pre-defined values", "[simulation]" )
 
   unordered_node_map<kitty::dynamic_truth_table, aig_network> node_to_value( aig );
   simulate_nodes<kitty::dynamic_truth_table>( aig, node_to_value, sim );
-
+  CHECK( ( aig.is_complemented( f1 ) ? ~node_to_value[f1] : node_to_value[f1] )._bits[0] == 0x7 );
+  CHECK( ( aig.is_complemented( f2 ) ? ~node_to_value[f2] : node_to_value[f2] )._bits[0] == 0xd );
+  CHECK( ( aig.is_complemented( f3 ) ? ~node_to_value[f3] : node_to_value[f3] )._bits[0] == 0xb );
   CHECK( ( aig.is_complemented( f4 ) ? ~node_to_value[f4] : node_to_value[f4] )._bits[0] == 0x6 );
 
   node_to_value.reset();
@@ -90,6 +92,28 @@ TEST_CASE( "Simulate XOR AIG circuit with pre-defined values", "[simulation]" )
   CHECK( ( aig.is_complemented( f2 ) ? ~node_to_value[f2] : node_to_value[f2] )._bits[0] == 0x5 );
   CHECK( ( aig.is_complemented( f3 ) ? ~node_to_value[f3] : node_to_value[f3] )._bits[0] == 0x3 );
   CHECK( ( aig.is_complemented( f4 ) ? ~node_to_value[f4] : node_to_value[f4] )._bits[0] == 0xe );
+
+  node_to_value.reset();
+
+  /* set node a to false, such that function f1 becomes true */
+  node_to_value[aig.get_node( a )] = ~kitty::dynamic_truth_table( 2 );
+  /* re-simulated with the fixed value for f1 */
+  simulate_nodes<kitty::dynamic_truth_table>( aig, node_to_value, sim );
+  CHECK( ( aig.is_complemented( f1 ) ? ~node_to_value[f1] : node_to_value[f1] )._bits[0] == 0x3 );
+  CHECK( ( aig.is_complemented( f2 ) ? ~node_to_value[f2] : node_to_value[f2] )._bits[0] == 0xc );
+  CHECK( ( aig.is_complemented( f3 ) ? ~node_to_value[f3] : node_to_value[f3] )._bits[0] == 0xf );
+  CHECK( ( aig.is_complemented( f4 ) ? ~node_to_value[f4] : node_to_value[f4] )._bits[0] == 0x3 );
+
+  node_to_value.reset();
+
+  /* set node a to false, such that function f1 becomes true */
+  node_to_value[aig.get_node( b )] = ~kitty::dynamic_truth_table( 2 );
+  /* re-simulated with the fixed value for f1 */
+  simulate_nodes<kitty::dynamic_truth_table>( aig, node_to_value, sim );
+  CHECK( ( aig.is_complemented( f1 ) ? ~node_to_value[f1] : node_to_value[f1] )._bits[0] == 0x5 );
+  CHECK( ( aig.is_complemented( f2 ) ? ~node_to_value[f2] : node_to_value[f2] )._bits[0] == 0xf );
+  CHECK( ( aig.is_complemented( f3 ) ? ~node_to_value[f3] : node_to_value[f3] )._bits[0] == 0xa );
+  CHECK( ( aig.is_complemented( f4 ) ? ~node_to_value[f4] : node_to_value[f4] )._bits[0] == 0x5 );
 }
 
 TEST_CASE( "Partial simulator", "[simulation]" )

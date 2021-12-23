@@ -14,7 +14,7 @@
 
 using namespace mockturtle;
 
-TEST_CASE( "CEC simple AIG", "[cec]" )
+TEST_CASE( "CEC simple AIG copy", "[cec2]" )
 {
   aig_network aig1;
 
@@ -40,8 +40,101 @@ TEST_CASE( "CEC simple AIG", "[cec]" )
   CHECK( st.rounds == 1 );
 }
 
+TEST_CASE( "CEC simple AIG 2", "[cec2]" )
+{
+  aig_network aig1;
 
-TEST_CASE( "CEC different #PIs", "[cec]" )
+  const auto a1 = aig1.create_pi();
+  const auto b1 = aig1.create_pi();
+  const auto c1 = aig1.create_pi();
+  const auto d1 = aig1.create_pi();
+  const auto f11 = aig1.create_or( a1, b1 );
+  const auto f21 = aig1.create_or( c1, d1 );
+  const auto f31 = aig1.create_and( f11, f21 );
+  aig1.create_po( f31 );
+
+  aig_network aig2;
+
+  const auto a2 = aig2.create_pi();
+  const auto b2 = aig2.create_pi();
+  const auto c2 = aig2.create_pi();
+  const auto d2 = aig2.create_pi();
+  const auto f12 = aig2.create_and( a2, c2 );
+  const auto f22 = aig2.create_and( a2, d2 );
+  const auto f32 = aig2.create_and( b2, c2 );
+  const auto f42 = aig2.create_and( b2, d2 );
+  const auto f52 = aig2.create_or( f12, f22 );
+  const auto f62 = aig2.create_or( f32, f42 );
+  const auto f72 = aig2.create_or( f52, f62 );
+  aig2.create_po( f72 );
+
+  simulation_cec_stats st;
+  CHECK( *simulation_cec( aig1, aig2, &st ) );
+  CHECK( st.split_var == 4 );
+  CHECK( st.rounds == 1 );
+}
+
+TEST_CASE( "CEC simple AIG 3", "[cec2]" )
+{
+  aig_network aig1;
+
+  const auto a1 = aig1.create_pi();
+  const auto b1 = aig1.create_pi();
+  const auto c1 = aig1.create_pi();
+  const auto d1 = aig1.create_pi();
+  const auto f11 = aig1.create_nand( a1, b1 );
+  const auto f21 = aig1.create_nand( c1, d1 );
+  const auto f31 = aig1.create_nor( f11, f21 );
+  aig1.create_po( f31 );
+
+  aig_network aig2;
+
+  const auto a2 = aig2.create_pi();
+  const auto b2 = aig2.create_pi();
+  const auto c2 = aig2.create_pi();
+  const auto d2 = aig2.create_pi();
+  const auto f12 = aig2.create_and( a2, b2 );
+  const auto f22 = aig2.create_and( c2, d2 );
+  const auto f32 = aig2.create_and( f12, f22 );
+  aig2.create_po( f32 );
+
+  simulation_cec_stats st;
+  CHECK( *simulation_cec( aig1, aig2, &st ) );
+  CHECK( st.split_var == 4 );
+  CHECK( st.rounds == 1 );
+}
+
+TEST_CASE( "CEC simple AIG 4", "[cec2]" )
+{
+  aig_network aig1;
+
+  const auto a1 = aig1.create_pi();
+  const auto b1 = aig1.create_pi();
+  const auto c1 = aig1.create_pi();
+  const auto d1 = aig1.create_pi();
+  const auto f11 = aig1.create_and( a1, b1 );
+  const auto f21 = aig1.create_or( f11, c1 );
+  const auto f31 = aig1.create_or( f21, d1 );
+  aig1.create_po( f31 );
+
+  aig_network aig2;
+
+  const auto a2 = aig2.create_pi();
+  const auto b2 = aig2.create_pi();
+  const auto c2 = aig2.create_pi();
+  const auto d2 = aig2.create_pi();
+  const auto f12 = aig2.create_and( a2, b2 );
+  const auto f22 = aig2.create_and( c2, d2 );
+  const auto f32 = aig2.create_or( f12, f22 );
+  aig2.create_po( f32 );
+
+  simulation_cec_stats st;
+  CHECK( !*simulation_cec( aig1, aig2, &st ) );
+  CHECK( st.split_var == 4 );
+  CHECK( st.rounds == 1 );
+}
+
+TEST_CASE( "CEC different #PIs copy", "[cec2]" )
 {
   xag_network xag1;
 
@@ -68,7 +161,7 @@ TEST_CASE( "CEC different #PIs", "[cec]" )
   CHECK( !*simulation_cec( xag1, xag2, &st ) );
 }
 
-TEST_CASE( "CEC different #POs", "[cec]" )
+TEST_CASE( "CEC different #POs copy", "[cec2]" )
 {
   aig_network aig1;
 
@@ -95,7 +188,7 @@ TEST_CASE( "CEC different #POs", "[cec]" )
   CHECK( !*simulation_cec( aig1, aig2, &st ) );
 }
 
-TEST_CASE( "CEC too many PIs", "[cec]" )
+TEST_CASE( "CEC too many PIs copy", "[cec2]" )
 {
   aig_network aig1;
 
@@ -106,7 +199,7 @@ TEST_CASE( "CEC too many PIs", "[cec]" )
   CHECK( simulation_cec( aig1, aig1, &st ) == std::nullopt );
 }
 
-TEST_CASE( "CEC different AIGs", "[cec]" )
+TEST_CASE( "CEC different AIGs copy", "[cec2]" )
 {
   aig_network aig1;
 
@@ -128,7 +221,8 @@ TEST_CASE( "CEC different AIGs", "[cec]" )
   CHECK( st.rounds == 1 );
 }
 
-TEST_CASE( "CEC on optimized design 2", "[cec]" )
+
+TEST_CASE( "CEC on optimized design 2 copy", "[cec2]" )
 {
   xag_network xag1;
 
@@ -146,50 +240,3 @@ TEST_CASE( "CEC on optimized design 2", "[cec]" )
   CHECK( st.split_var == 11 );
   CHECK( st.rounds == 1 );
 }
-
-TEST_CASE( "CEC on optimized design 1", "[cec]" )
-{
-  mig_network mig1;
-
-  auto const result = lorina::read_aiger( fmt::format( "{}/sin.aig", BENCHMARKS_PATH ), aiger_reader( mig1 ) );
-  CHECK( result == lorina::return_code::success );
-
-  mig_npn_resynthesis resyn{ true };
-
-  exact_library<mig_network, mig_npn_resynthesis> lib( resyn );
-
-  mig_network mig2 = map( mig1, lib );
-
-  simulation_cec_stats st;
-  CHECK( *simulation_cec( mig1, mig2, &st ) );
-  CHECK( st.split_var == 18 );
-  CHECK( st.rounds == 64 );
-}
-
-TEST_CASE( "CEC on badly optimized design 1", "[cec]" )
-{
-  mig_network mig1;
-
-  auto const result = lorina::read_aiger( fmt::format( "{}/sin.aig", BENCHMARKS_PATH ), aiger_reader( mig1 ) );
-  CHECK( result == lorina::return_code::success );
-
-  mig_npn_resynthesis resyn{ true };
-
-  exact_library<mig_network, mig_npn_resynthesis> lib( resyn );
-
-  mig_network mig2 = map( mig1, lib );
-
-  auto a = mig2.pi_at( 22 );
-  auto b = mig2.pi_at( 23 );
-  auto f = mig2.create_and( mig2.make_signal( a ), mig2.make_signal( b ) );
-  auto g = mig2.create_or( f, mig2.make_signal( mig2.index_to_node( 4331 ) ) );
-  mig2.replace_in_outputs( mig2.index_to_node( 4331 ), g );
-
-  simulation_cec_stats st;
-  CHECK( !*simulation_cec( mig1, mig2, &st ) );
-  CHECK( st.split_var == 18 );
-  CHECK( st.rounds == 64 );
-}
-
-
-
