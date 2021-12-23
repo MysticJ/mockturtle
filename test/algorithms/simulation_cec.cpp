@@ -147,6 +147,7 @@ TEST_CASE( "CEC on optimized design 2", "[cec]" )
   CHECK( st.rounds == 1 );
 }
 
+/*
 TEST_CASE( "CEC on optimized design 1", "[cec]" )
 {
   mig_network mig1;
@@ -190,6 +191,6 @@ TEST_CASE( "CEC on badly optimized design 1", "[cec]" )
   CHECK( st.split_var == 18 );
   CHECK( st.rounds == 64 );
 }
-
+*/
 
 
